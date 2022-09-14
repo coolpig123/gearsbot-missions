@@ -36,40 +36,56 @@ wheel_circumference = 65*3.14
 
 # function to turn the tank 90 degrees
 def turn_90_degrees():
-    # set the velocities for right and left wheel
-    tank_drive.on(25,-25)
-    # do not stop the engines until the vehicle turned 90 degrees
-    gyro_sensor_in3.wait_until_angle_changed_by(-90)
-    # stop the tank
-    tank_drive.stop()
-    
-    
+    gyro_sensor_in3.reset()
+    gain = 1
+    while True:
+        error = 90 - gyro_sensor_in3.angle
+        correction = gain * error
+        if error > 0:
+            steering_drive.on(100,correction)
+        else:
+            break
+    steering_drive.on(0,0)
+        
     
 # function to move the tank 200 mm
-def move_line(distance):
+def move_line(delay):
     # set values for acceleration and initial velocity
-    acceleration = 10
-    velocity = 30
+    init = 10
+    initial_velocity = 10
+    final_velocity = 50
+    while initial_velocity < final_velocity:
+        tank_drive.on(initial_velocity,initial_velocity)
+        initial_velocity += 0.4
+        time.sleep(delay)
+    while initial_velocity > init:
+        tank_drive.on(initial_velocity,initial_velocity)
+        initial_velocity -= 0.4
+        time.sleep(delay)
+    print(initial_velocity)
     
-    # acceleration part
-    for i in range(4):
-        tank_drive.on_for_rotations(SpeedRPM(int(velocity)),SpeedRPM(int(velocity)), (distance / wheel_circumference) / 8,brake = False)
-        # add acceleration to velocity
-        velocity += acceleration
-        
-    # deceleration part
-    acceleration = -10
-    for i in range(4):
-        tank_drive.on_for_rotations(SpeedRPM(velocity),SpeedRPM(velocity), (distance / wheel_circumference) / 8,brake = False)
-        # add acceleration to velocity
-        velocity += acceleration
-    
+# function to move the tank 200 mm
+def move_line_2(delay):
+    # set values for acceleration and initial velocity
+    init = -10
+    initial_velocity = -10
+    final_velocity = -50
+    while initial_velocity > final_velocity:
+        tank_drive.on(initial_velocity,initial_velocity)
+        initial_velocity -= 0.4
+        time.sleep(delay)
+    while initial_velocity < init:
+        tank_drive.on(initial_velocity,initial_velocity)
+        initial_velocity += 0.4
+        time.sleep(delay)
+    print(initial_velocity)
 # put pen down 
 pen_in5.down()
 
 # move 200mm then turn 90 degrees 4 times
-dist = [90,325,300,300]
-for i in range(4):
-    move_line(dist[i])
+move_line_2(0.005)
+for i in range(2):
+    move_line(0.009)
     turn_90_degrees()
-move_line(75)
+    move_line(0.01)
+    turn_90_degrees()
